@@ -1,7 +1,7 @@
 {
   "publisher": "antfu",
   "name": "pair-diff",
-  "displayName": "pair-diff",
+  "displayName": "Pair Diff",
   "version": "0.0.1",
   "private": true,
   "packageManager": "pnpm@8.10.5",
@@ -36,7 +36,7 @@
   ],
   "contributes": {
     "configuration": {
-      "title": "Auto Diff",
+      "title": "Pair Diff",
       "properties": {
         "pair-diff.codeLens": {
           "type": "boolean",
@@ -92,7 +92,7 @@
     "commands": [
       {
         "command": "pair-diff.open",
-        "title": "Open Diff",
+        "title": "Open Pair Diff",
         "icon": "$(diff)"
       }
     ]
