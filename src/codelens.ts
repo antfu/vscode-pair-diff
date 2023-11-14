@@ -2,7 +2,6 @@ import { relative } from 'node:path'
 import { CodeLens, EventEmitter } from 'vscode'
 import type { CodeLensProvider as Provider, ProviderResult, TextDocument } from 'vscode'
 import type { Context } from './context'
-import { findMatchedTargets } from './utils'
 import { EXT_ID } from './constants'
 
 export class CodeLensProvider implements Provider {
@@ -23,7 +22,7 @@ export class CodeLensProvider implements Provider {
     if (!this.ctx.codeLens)
       return
 
-    const targets = findMatchedTargets(this.ctx.cwd, document.uri, this.ctx.patterns)
+    const targets = this.ctx.findMatchedTargets(document.uri)
     if (targets?.length) {
       return [
         new CodeLens(
