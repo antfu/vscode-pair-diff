@@ -1,37 +1,28 @@
 import { basename, relative } from 'node:path'
-import type { ExtensionContext, TextEditor, Uri } from 'vscode'
-import { commands, window, workspace } from 'vscode'
-import { findMatchedTargets, normalizePatterns, slash } from './utils'
-import type { MatchPattern, ResolvedMatchPattern } from './types'
+import type { ExtensionContext, Uri } from 'vscode'
+import { commands, languages, window, workspace } from 'vscode'
+import { findMatchedTargets } from './utils'
 import { EXT_ID, EXT_NAME } from './constants'
+import { Context } from './context'
+import { CodeLensProvider } from './codelens'
 
 export function activate(ext: ExtensionContext) {
-  const cwd = slash(workspace.workspaceFolders![0]!.uri.fsPath)
+  const ctx = new Context(ext)
 
-  let patterns: ResolvedMatchPattern[] = []
-
-  function readConfig() {
-    patterns = normalizePatterns(cwd, workspace.getConfiguration(EXT_ID).get<MatchPattern[]>('patterns') || [])
-    updateContext(window.activeTextEditor)
-    window.showInformationMessage(`${EXT_NAME}: ${patterns.length} patterns loaded`)
-  }
-
-  function updateContext(editor: TextEditor | undefined) {
-    const uri = editor?.document.uri
-    const targets = findMatchedTargets(cwd, uri, patterns)
-    commands.executeCommand('setContext', `${EXT_ID}.available`, !!targets?.length)
-    if (targets?.length)
-      window.showInformationMessage(`Matched ${targets.map(i => i.fsPath).join(', ')}`)
-  }
+  ctx.readConfig()
 
   ext.subscriptions.push(
+    languages.registerCodeLensProvider('*', new CodeLensProvider(ctx)),
     workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration(`${EXT_ID}.patterns`))
-        readConfig()
+        ctx.readConfig()
     }),
-    commands.registerCommand(`${EXT_ID}.open`, async () => {
-      const uri = window.activeTextEditor?.document.uri
-      const targets = findMatchedTargets(cwd, uri, patterns)
+    commands.registerCommand(`${EXT_ID}.open`, async (sourceUri, targetUri) => {
+      const uri = sourceUri ?? window.activeTextEditor?.document.uri
+      const targets = targetUri
+        ? [targetUri]
+        : findMatchedTargets(ctx.cwd, uri, ctx.patterns)
+
       if (!targets || !uri)
         return
 
@@ -42,7 +33,7 @@ export function activate(ext: ExtensionContext) {
       else {
         const result = await window.showQuickPick(
           targets.map(i => ({
-            label: relative(cwd, i.fsPath),
+            label: relative(ctx.cwd, i.fsPath),
             tag: i,
           })),
           {
@@ -64,11 +55,9 @@ export function activate(ext: ExtensionContext) {
     }),
 
     window.onDidChangeActiveTextEditor((editor) => {
-      updateContext(editor)
+      ctx.updateEnv(editor)
     }),
   )
-
-  readConfig()
 }
 
 export function deactivate() {

@@ -38,6 +38,11 @@
     "configuration": {
       "title": "Auto Diff",
       "properties": {
+        "auto-diff.codeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable code lens"
+        },
         "auto-diff.patterns": {
           "type": "array",
           "description": "Patterns for matching diff paris",
