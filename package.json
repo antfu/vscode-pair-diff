@@ -1,0 +1,64 @@
+{
+  "publisher": "antfu",
+  "name": "auto-diff",
+  "displayName": "auto-diff",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@8.10.5",
+  "description": "",
+  "author": "Anthony Fu <anthonyfu117@hotmail.com>",
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/antfu",
+  "homepage": "https://github.com/antfu/vscode-auto-diff#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/antfu/vscode-auto-diff"
+  },
+  "bugs": {
+    "url": "https://github.com/antfu/vscode-auto-diff/issues"
+  },
+  "sponsor": {
+    "url": "https://github.com/sponsors/antfu"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/index.js",
+  "icon": "res/icon.png",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "vscode": "^1.83.0"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --external vscode",
+    "dev": "nr build --watch",
+    "lint": "eslint .",
+    "vscode:prepublish": "nr build",
+    "publish": "vsce publish --no-dependencies",
+    "pack": "vsce package --no-dependencies",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit",
+    "release": "bumpp && nr publish"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^1.1.1",
+    "@antfu/ni": "^0.21.9",
+    "@types/node": "^20.9.0",
+    "@types/vscode": "^1.84.1",
+    "@vscode/vsce": "^2.22.0",
+    "bumpp": "^9.2.0",
+    "eslint": "^8.53.0",
+    "esno": "^4.0.0",
+    "pnpm": "^8.10.5",
+    "rimraf": "^5.0.5",
+    "tsup": "^7.2.0",
+    "typescript": "^5.2.2",
+    "vite": "^4.5.0",
+    "vitest": "^0.34.6"
+  }
+}
