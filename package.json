@@ -34,6 +34,46 @@
   "activationEvents": [
     "onStartupFinished"
   ],
+  "contributes": {
+    "configuration": {
+      "title": "Auto Diff",
+      "properties": {
+        "auto-diff.patterns": {
+          "type": "array",
+          "description": "Patterns for matching diff paris",
+          "items": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "string",
+                "description": "The source pattern, support glob"
+              },
+              "target": {
+                "type": "string",
+                "description": "The target path. TODO"
+              }
+            }
+          }
+        }
+      }
+    },
+    "menus": {
+      "editor/title": [
+        {
+          "when": "auto-diff.available",
+          "command": "auto-diff.open",
+          "group": "navigation"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "auto-diff.open",
+        "title": "Open Diff",
+        "icon": "$(diff)"
+      }
+    ]
+  },
   "scripts": {
     "build": "tsup src/index.ts --external vscode",
     "dev": "nr build --watch",
@@ -48,12 +88,14 @@
   "devDependencies": {
     "@antfu/eslint-config": "^1.1.1",
     "@antfu/ni": "^0.21.9",
+    "@types/micromatch": "^4.0.5",
     "@types/node": "^20.9.0",
     "@types/vscode": "^1.84.1",
     "@vscode/vsce": "^2.22.0",
     "bumpp": "^9.2.0",
     "eslint": "^8.53.0",
     "esno": "^4.0.0",
+    "micromatch": "^4.0.5",
     "pnpm": "^8.10.5",
     "rimraf": "^5.0.5",
     "tsup": "^7.2.0",
