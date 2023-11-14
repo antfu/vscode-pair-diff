@@ -1,17 +1,35 @@
 import { basename, relative } from 'node:path'
-import type { ExtensionContext, Uri } from 'vscode'
+import type { ExtensionContext, TextEditor, Uri } from 'vscode'
 import { commands, window, workspace } from 'vscode'
 import { findMatchedTargets, normalizePatterns, slash } from './utils'
-import type { MatchPattern } from './types'
+import type { MatchPattern, ResolvedMatchPattern } from './types'
+import { EXT_ID, EXT_NAME } from './constants'
 
 export function activate(ext: ExtensionContext) {
   const cwd = slash(workspace.workspaceFolders![0]!.uri.fsPath)
 
-  const config = workspace.getConfiguration('auto-diff')
-  const patterns = normalizePatterns(cwd, config.get<MatchPattern[]>('patterns') || [])
+  let patterns: ResolvedMatchPattern[] = []
+
+  function readConfig() {
+    patterns = normalizePatterns(cwd, workspace.getConfiguration(EXT_ID).get<MatchPattern[]>('patterns') || [])
+    updateContext(window.activeTextEditor)
+    window.showInformationMessage(`${EXT_NAME}: ${patterns.length} patterns loaded`)
+  }
+
+  function updateContext(editor: TextEditor | undefined) {
+    const uri = editor?.document.uri
+    const targets = findMatchedTargets(cwd, uri, patterns)
+    commands.executeCommand('setContext', `${EXT_ID}.available`, !!targets?.length)
+    if (targets?.length)
+      window.showInformationMessage(`Matched ${targets.map(i => i.fsPath).join(', ')}`)
+  }
 
   ext.subscriptions.push(
-    commands.registerCommand('auto-diff.open', async () => {
+    workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration(`${EXT_ID}.patterns`))
+        readConfig()
+    }),
+    commands.registerCommand(`${EXT_ID}.open`, async () => {
       const uri = window.activeTextEditor?.document.uri
       const targets = findMatchedTargets(cwd, uri, patterns)
       if (!targets || !uri)
@@ -40,19 +58,17 @@ export function activate(ext: ExtensionContext) {
           'vscode.diff',
           uri,
           target,
-          `Auto Diff: ${basename(uri.fsPath)} ↔ ${basename(target.fsPath)}`,
+          `${EXT_NAME}: ${basename(uri.fsPath)} ↔ ${basename(target.fsPath)}`,
         )
       }
     }),
 
     window.onDidChangeActiveTextEditor((editor) => {
-      const uri = editor?.document.uri
-      const targets = findMatchedTargets(cwd, uri, patterns)
-      commands.executeCommand('setContext', 'auto-diff.available', !!targets?.length)
-      if (targets?.length)
-        window.showInformationMessage(`Matched ${targets.map(i => i.fsPath).join(', ')}`)
+      updateContext(editor)
     }),
   )
+
+  readConfig()
 }
 
 export function deactivate() {
