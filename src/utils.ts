@@ -2,12 +2,19 @@ import { parse, resolve } from 'node:path'
 import { existsSync } from 'node:fs'
 import { Uri } from 'vscode'
 import mm from 'micromatch'
-import type { MatchPattern } from './types'
+import type { MatchPattern, ResolvedMatchPattern } from './types'
 
-export function normalizePatterns(cwd: string, patterns: MatchPattern[]) {
+export function toArray<T>(value: T | T[]): T[] {
+  return Array.isArray(value) ? value : [value]
+}
+
+export function normalizePatterns(
+  cwd: string,
+  patterns: MatchPattern[],
+): ResolvedMatchPattern[] {
   return patterns.map(i => ({
-    source: resolve(cwd, i.source),
-    target: i.target,
+    source: toArray(i.source).map(s => resolve(cwd, s)),
+    target: toArray(i.target),
   }))
 }
 
@@ -15,7 +22,11 @@ export function slash(path: string) {
   return path.replace(/\\/g, '/')
 }
 
-export function findMatchedTarget(cwd: string, source: Uri | undefined, patterns: MatchPattern[]) {
+export function findMatchedTargets(
+  cwd: string,
+  source: Uri | undefined,
+  patterns: ResolvedMatchPattern[],
+) {
   if (!source)
     return
   const pattern = patterns.find(p => mm.isMatch(source.fsPath, p.source))
@@ -24,22 +35,27 @@ export function findMatchedTarget(cwd: string, source: Uri | undefined, patterns
 
   const parsed = parse(slash(source.fsPath))
 
-  let targetPath = pattern.target
+  const targets: Uri[] = []
 
-  Object.entries({
-    ...parsed,
-    basename: parsed.base,
-    dirname: parsed.dir,
-  })
-    .forEach(([key, value]) => {
-      targetPath = targetPath.replaceAll(`<${key}>`, value)
+  for (const target of pattern.target) {
+    let targetPath = target
+    Object.entries({
+      ...parsed,
+      basename: parsed.base,
+      dirname: parsed.dir,
     })
+      .forEach(([key, value]) => {
+        targetPath = targetPath.replaceAll(`<${key}>`, value)
+      })
 
-  // remove duplicated slashes
-  targetPath = targetPath.replace(/\/+/g, '/')
+    // remove duplicated slashes
+    targetPath = targetPath.replace(/\/+/g, '/')
+    targetPath = resolve(cwd, targetPath)
 
-  targetPath = resolve(cwd, targetPath)
+    if (existsSync(targetPath))
+      targets.push(Uri.file(targetPath))
+  }
 
-  if (existsSync(targetPath))
-    return Uri.file(targetPath)
+  if (targets.length)
+    return targets
 }

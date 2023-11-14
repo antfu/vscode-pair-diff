@@ -44,14 +44,32 @@
           "items": {
             "type": "object",
             "properties": {
-              "source": {
-                "type": "string",
-                "description": "The source pattern, support glob"
-              },
-              "target": {
-                "type": "string",
-                "description": "The target path. TODO"
-              }
+              "source": [
+                {
+                  "type": "string",
+                  "description": "The source pattern, support glob"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "The source pattern, support glob"
+                }
+              ],
+              "target": [
+                {
+                  "type": "string",
+                  "description": "The target path. TODO"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "The source pattern, support glob"
+                }
+              ]
             }
           }
         }

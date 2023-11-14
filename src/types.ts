@@ -1,4 +1,9 @@
 export interface MatchPattern {
-  source: string
-  target: string
+  source: string | string[]
+  target: string | string[]
+}
+
+export interface ResolvedMatchPattern {
+  source: string[]
+  target: string[]
 }
