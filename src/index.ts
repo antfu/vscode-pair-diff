@@ -1,6 +1,6 @@
 import { basename, relative } from 'node:path'
-import type { ExtensionContext, Uri } from 'vscode'
-import { commands, languages, window, workspace } from 'vscode'
+import type { ExtensionContext } from 'vscode'
+import { Uri, commands, languages, window, workspace } from 'vscode'
 import { findMatchedTargets } from './utils'
 import { EXT_ID, EXT_NAME } from './constants'
 import { Context } from './context'
@@ -17,10 +17,12 @@ export function activate(ext: ExtensionContext) {
       if (e.affectsConfiguration(`${EXT_ID}.patterns`))
         ctx.readConfig()
     }),
-    commands.registerCommand(`${EXT_ID}.open`, async (sourceUri, targetUri) => {
-      const uri = sourceUri ?? window.activeTextEditor?.document.uri
-      const targets = targetUri
-        ? [targetUri]
+    commands.registerCommand(`${EXT_ID}.open`, async (...args) => {
+      const uri = args[0] instanceof Uri
+        ? args[0]
+        : window.activeTextEditor?.document.uri
+      const targets = args[1] instanceof Uri
+        ? [args[1]]
         : findMatchedTargets(ctx.cwd, uri, ctx.patterns)
 
       if (!targets || !uri)
