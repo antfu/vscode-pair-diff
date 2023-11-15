@@ -2,7 +2,7 @@
   "publisher": "antfu",
   "name": "pair-diff",
   "displayName": "Pair Diff",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "private": true,
   "packageManager": "pnpm@8.10.5",
   "description": "Pair files for quick diffing.",
